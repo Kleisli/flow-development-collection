@@ -14,6 +14,7 @@ namespace Neos\Eel\Helper;
 use Neos\Eel\EvaluationException;
 use Neos\Eel\ProtectedContextAwareInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Utility\Unicode\Exception;
 use Neos\Utility\Unicode\Functions as UnicodeFunctions;
 use Neos\Utility\Unicode\TextIterator;
 
@@ -36,14 +37,12 @@ class StringHelper implements ProtectedContextAwareInterface
      *     String.substr('Hello, World!', -6) == 'World!'
      *
      * @param string $string A string
-     * @param integer $start Start offset
-     * @param integer $length Maximum length of the substring that is returned
+     * @param int $start Start offset
+     * @param int|null $length Maximum length of the substring that is returned
      * @return string The substring
      */
-    public function substr($string, $start, $length = null)
+    public function substr(string $string, int $start, int $length = null): string
     {
-        $string = (string)$string;
-
         if ($length === null) {
             $length = mb_strlen($string, 'UTF-8');
         }
@@ -62,14 +61,12 @@ class StringHelper implements ProtectedContextAwareInterface
      *     String.substring('Hello, World!', 7) == 'World!'
      *
      * @param string $string
-     * @param integer $start Start index
-     * @param integer $end End index
+     * @param int $start Start index
+     * @param int|null $end End index
      * @return string The substring
      */
-    public function substring($string, $start, $end = null)
+    public function substring(string $string, int $start, int $end = null): string
     {
-        $string = (string)$string;
-
         if ($end === null) {
             $end = mb_strlen($string, 'UTF-8');
         }
@@ -92,15 +89,15 @@ class StringHelper implements ProtectedContextAwareInterface
      *     String.charAt("abcdefg", 5) == "f"
      *
      * @param string $string The input string
-     * @param integer $index The index to get
+     * @param int $index The index to get
      * @return string The character at the given index
      */
-    public function charAt($string, $index)
+    public function charAt(string $string, int $index): string
     {
         if ($index < 0) {
             return '';
         }
-        return mb_substr((string)$string, $index, 1, 'UTF-8');
+        return mb_substr($string, $index, 1, 'UTF-8');
     }
 
     /**
@@ -115,11 +112,8 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param int|null $position Optional position for limiting the string
      * @return boolean true if the string ends with the given search
      */
-    public function endsWith($string, $search, $position = null)
+    public function endsWith(string $string, string $search, int $position = null): bool
     {
-        $string = (string)$string;
-        $search = (string)$search;
-
         $position = $position ?? mb_strlen($string, 'UTF-8');
         $position = $position - mb_strlen($search, 'UTF-8');
         return mb_strrpos($string, $search, 0, 'UTF-8') === $position;
@@ -133,14 +127,13 @@ class StringHelper implements ProtectedContextAwareInterface
      *     String.chr(65) == "A"
      *
      * This is a wrapper for the chr() PHP function.
-     * @see ord()
-     *
-     * @param int $value An integer between 0 and 255
+     * @param int $codepoint The ascii code - An integer between 0 and 255
      * @return string A single-character string containing the specified byte
+     * @see ord()
      */
-    public function chr($value)
+    public function chr(int $codepoint): string
     {
-        return chr((int)$value);
+        return chr($codepoint);
     }
 
     /**
@@ -153,12 +146,12 @@ class StringHelper implements ProtectedContextAwareInterface
      * This is a wrapper for the ord() PHP function.
      * @see chr()
      *
-     * @param string $string A character
+     * @param string $character A character
      * @return int An integer between 0 and 255
      */
-    public function ord($string)
+    public function ord(string $character): int
     {
-        return ord((string)$string);
+        return ord($character);
     }
 
     /**
@@ -170,13 +163,11 @@ class StringHelper implements ProtectedContextAwareInterface
      *
      * @param string $string The input string
      * @param string $search The substring to search for
-     * @param integer $fromIndex The index where the search should start, defaults to the beginning
+     * @param int $fromIndex The index where the search should start, defaults to the beginning
      * @return integer The index of the substring (>= 0) or -1 if the substring was not found
      */
-    public function indexOf($string, $search, $fromIndex = null)
+    public function indexOf(string $string, string $search, int $fromIndex = 0): int
     {
-        $string = (string)$string;
-
         $fromIndex = max(0, $fromIndex);
         if ($search === '') {
             return min(mb_strlen($string, 'UTF-8'), $fromIndex);
@@ -185,7 +176,7 @@ class StringHelper implements ProtectedContextAwareInterface
         if ($index === false) {
             return -1;
         }
-        return (integer)$index;
+        return $index;
     }
 
     /**
@@ -197,13 +188,11 @@ class StringHelper implements ProtectedContextAwareInterface
      *
      * @param string $string The input string
      * @param string $search The substring to search for
-     * @param integer $toIndex The position where the backwards search should start, defaults to the end
+     * @param int|null $toIndex The position where the backwards search should start, defaults to the end
      * @return integer The last index of the substring (>=0) or -1 if the substring was not found
      */
-    public function lastIndexOf($string, $search, $toIndex = null)
+    public function lastIndexOf(string $string, string $search, int $toIndex = null): int
     {
-        $string = (string)$string;
-
         $length = mb_strlen($string, 'UTF-8');
         if ($toIndex === null) {
             $toIndex = $length;
@@ -217,7 +206,7 @@ class StringHelper implements ProtectedContextAwareInterface
         if ($index === false) {
             return -1;
         }
-        return (integer)$index;
+        return $index;
     }
 
     /**
@@ -230,12 +219,12 @@ class StringHelper implements ProtectedContextAwareInterface
      *
      * @param string $string The input string
      * @param string $pattern A PREG pattern
-     * @return array The matches as array or NULL if not matched
+     * @return array|null The matches as array or NULL if not matched
      * @throws EvaluationException
      */
-    public function pregMatch($string, $pattern)
+    public function pregMatch(string $string, string $pattern): ?array
     {
-        $number = preg_match($pattern, (string)$string, $matches);
+        $number = preg_match($pattern, $string, $matches);
         if ($number === false) {
             throw new EvaluationException('Error evaluating regular expression ' . $pattern . ': ' . preg_last_error(), 1372793595);
         }
@@ -255,12 +244,12 @@ class StringHelper implements ProtectedContextAwareInterface
      *
      * @param string $string The input string
      * @param string $pattern A PREG pattern
-     * @return array The matches as array or NULL if not matched
+     * @return array|null The matches as array or NULL if not matched
      * @throws EvaluationException
      */
-    public function pregMatchAll($string, $pattern)
+    public function pregMatchAll(string $string, string $pattern): ?array
     {
-        $number = preg_match_all($pattern, (string)$string, $matches);
+        $number = preg_match_all($pattern, $string, $matches);
         if ($number === false) {
             throw new EvaluationException('Error evaluating regular expression ' . $pattern . ': ' . preg_last_error(), 1372793595);
         }
@@ -285,12 +274,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param integer $limit The maximum possible replacements for each pattern in each subject string. Defaults to -1 (no limit).
      * @return string The string with all occurrences replaced
      */
-    public function pregReplace($string, $pattern, $replace, $limit = -1)
+    public function pregReplace(string $string, string $pattern, string $replace, int $limit = -1): string
     {
-        if ($limit === null) {
-            $limit = -1;
-        }
-        return preg_replace($pattern, $replace, (string)$string, $limit);
+        return preg_replace($pattern, $replace, $string, $limit);
     }
 
     /**
@@ -306,9 +292,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param integer $limit The maximum amount of items to return, in contrast to split() this will return all remaining characters in the last item (see example)
      * @return array An array of the splitted parts, excluding the matched pattern
      */
-    public function pregSplit($string, $pattern, $limit = -1)
+    public function pregSplit(string $string, string $pattern, int $limit = -1): array
     {
-        return preg_split($pattern, (string)$string, (int)$limit);
+        return preg_split($pattern, $string, $limit);
     }
 
     /**
@@ -319,14 +305,15 @@ class StringHelper implements ProtectedContextAwareInterface
      *     String.replace("canal", "ana", "oo") == "cool"
      *     String.replace("cool gridge", ["oo", "gri"], ["ana", "bri"]) == "canal bridge"
      *
-     * Note: this method does not perform regular expression matching, @see pregReplace().
-     *
+     * Note: this method does not perform regular expression matching,
      * @param array|string|null $string The input string
      * @param array|string|null $search A search string
      * @param array|string|null $replace A replacement string
      * @return array|string|string[] The string with all occurrences replaced
+     *@see pregReplace().
+     *
      */
-    public function replace($string, $search, $replace)
+    public function replace(array|string|null $string, array|string|null $search, array|string|null $replace): array|string
     {
         // Replace null values with empty strings
         $string = is_array($string) ? $string : (string) $string;
@@ -351,10 +338,8 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param int|null $limit The maximum amount of items to split (exceeding items will be discarded)
      * @return array An array of the splitted parts, excluding the separators
      */
-    public function split($string, $separator = null, $limit = null)
+    public function split(string $string, string $separator = null, int $limit = null): array
     {
-        $string = (string)$string;
-
         if ($separator === null) {
             return [$string];
         }
@@ -384,13 +369,12 @@ class StringHelper implements ProtectedContextAwareInterface
      *
      * @param string $string The input string
      * @param string $search The string to search for
-     * @param integer $position The position to test (defaults to the beginning of the string)
+     * @param int $position The position to test (defaults to the beginning of the string)
      * @return boolean
      */
-    public function startsWith($string, $search, $position = null)
+    public function startsWith(string $string, string $search, int $position = 0): bool
     {
-        $position = $position ?? 0;
-        return mb_strpos((string)$string, (string)$search, 0, 'UTF-8') === $position;
+        return mb_strpos($string, $search, 0, 'UTF-8') === $position;
     }
 
     /**
@@ -399,9 +383,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return string The string in lowercase
      */
-    public function toLowerCase($string)
+    public function toLowerCase(string $string): string
     {
-        return mb_strtolower((string)$string, 'UTF-8');
+        return mb_strtolower($string, 'UTF-8');
     }
 
     /**
@@ -410,9 +394,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return string The string in uppercase
      */
-    public function toUpperCase($string)
+    public function toUpperCase(string $string): string
     {
-        return mb_strtoupper((string)$string, 'UTF-8');
+        return mb_strtoupper($string, 'UTF-8');
     }
 
     /**
@@ -425,9 +409,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return string The string with the first letter in uppercase
      */
-    public function firstLetterToUpperCase($string)
+    public function firstLetterToUpperCase(string $string): string
     {
-        return UnicodeFunctions::ucfirst((string)$string);
+        return UnicodeFunctions::ucfirst($string);
     }
 
     /**
@@ -440,9 +424,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return string The string with the first letter in lowercase
      */
-    public function firstLetterToLowerCase($string)
+    public function firstLetterToLowerCase(string $string): string
     {
-        return UnicodeFunctions::lcfirst((string)$string);
+        return UnicodeFunctions::lcfirst($string);
     }
 
     /**
@@ -458,9 +442,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string|null $allowableTags Specify tags which should not be stripped
      * @return string The string with tags stripped
      */
-    public function stripTags($string, $allowableTags = null)
+    public function stripTags(string $string, string $allowableTags = null): string
     {
-        return strip_tags((string)$string, $allowableTags);
+        return strip_tags($string, $allowableTags);
     }
 
     /**
@@ -475,9 +459,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return string The string with new lines replaced
      */
-    public function nl2br($string)
+    public function nl2br(string $string): string
     {
-        return nl2br((string)$string);
+        return nl2br($string);
     }
 
     /**
@@ -491,27 +475,21 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to test
      * @return boolean ``true`` if the given string is blank
      */
-    public function isBlank($string)
+    public function isBlank(string $string): bool
     {
-        return trim((string)$string) === '';
+        return trim($string) === '';
     }
 
     /**
      * Trim whitespace at the beginning and end of a string
      *
      * @param string $string The string to trim
-     * @param string $charlist List of characters that should be trimmed, defaults to whitespace
+     * @param string $characters List of characters that should be trimmed, defaults to whitespace
      * @return string The trimmed string
      */
-    public function trim($string, $charlist = null)
+    public function trim(string $string, string $characters = " \n\r\t\v\0"): string
     {
-        $string = (string)$string;
-
-        if ($charlist === null) {
-            return trim($string);
-        } else {
-            return trim($string, $charlist);
-        }
+        return trim($string, $characters);
     }
 
     /**
@@ -520,7 +498,7 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param mixed $value The value to convert (must be convertible to string)
      * @return string The string value
      */
-    public function toString($value)
+    public function toString(mixed $value): string
     {
         return (string)$value;
     }
@@ -531,7 +509,7 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to convert
      * @return integer The converted string
      */
-    public function toInteger($string)
+    public function toInteger(string $string): int
     {
         return (integer)$string;
     }
@@ -542,7 +520,7 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to convert
      * @return float The float value of the string
      */
-    public function toFloat($string)
+    public function toFloat(string $string): float
     {
         return (float)$string;
     }
@@ -555,9 +533,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to convert
      * @return boolean The boolean value of the string (``true`` or ``false``)
      */
-    public function toBoolean($string)
+    public function toBoolean(string $string): bool
     {
-        return strtolower((string)$string) === 'true' || (integer)$string === 1;
+        return strtolower($string) === 'true' || (integer)$string === 1;
     }
 
     /**
@@ -566,9 +544,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to encode
      * @return string The encoded string
      */
-    public function rawUrlEncode($string)
+    public function rawUrlEncode(string $string): string
     {
-        return rawurlencode((string)$string);
+        return rawurlencode($string);
     }
 
     /**
@@ -577,9 +555,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to decode
      * @return string The decoded string
      */
-    public function rawUrlDecode($string)
+    public function rawUrlDecode(string $string): string
     {
-        return rawurldecode((string)$string);
+        return rawurldecode($string);
     }
 
     /**
@@ -589,9 +567,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param boolean $preserveEntities ``true`` if entities should not be double encoded
      * @return string The converted string
      */
-    public function htmlSpecialChars($string, $preserveEntities = false)
+    public function htmlSpecialChars(string $string, bool $preserveEntities = false): string
     {
-        return htmlspecialchars((string)$string, ENT_NOQUOTES | ENT_HTML401, ini_get("default_charset"), !$preserveEntities);
+        return htmlspecialchars($string, ENT_NOQUOTES | ENT_HTML401, ini_get("default_charset"), !$preserveEntities);
     }
 
     /**
@@ -602,10 +580,8 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $suffix Suffix to be appended if cropping was necessary
      * @return string The cropped string
      */
-    public function crop($string, $maximumCharacters, $suffix = '')
+    public function crop(string $string, int $maximumCharacters, string $suffix = ''): string
     {
-        $string = (string)$string;
-
         if (UnicodeFunctions::strlen($string) > $maximumCharacters) {
             $string = UnicodeFunctions::substr($string, 0, $maximumCharacters);
             $string .= $suffix;
@@ -622,11 +598,10 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param integer $maximumCharacters Number of characters where cropping should happen
      * @param string $suffix Suffix to be appended if cropping was necessary
      * @return string The cropped string
+     * @throws Exception
      */
-    public function cropAtWord($string, $maximumCharacters, $suffix = '')
+    public function cropAtWord(string $string, int $maximumCharacters, string $suffix = ''): string
     {
-        $string = (string)$string;
-
         if (UnicodeFunctions::strlen($string) > $maximumCharacters) {
             $iterator = new TextIterator($string, TextIterator::WORD);
             $string = UnicodeFunctions::substr($string, 0, $iterator->preceding($maximumCharacters));
@@ -644,11 +619,10 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param integer $maximumCharacters Number of characters where cropping should happen
      * @param string $suffix Suffix to be appended if cropping was necessary
      * @return string The cropped string
+     * @throws Exception
      */
-    public function cropAtSentence($string, $maximumCharacters, $suffix = '')
+    public function cropAtSentence(string $string, int $maximumCharacters, string $suffix = ''): string
     {
-        $string = (string)$string;
-
         if (UnicodeFunctions::strlen($string) > $maximumCharacters) {
             $iterator = new TextIterator($string, TextIterator::SENTENCE);
             $string = UnicodeFunctions::substr($string, 0, $iterator->preceding($maximumCharacters));
@@ -668,9 +642,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to hash
      * @return string The MD5 hash of ``string``
      */
-    public function md5($string)
+    public function md5(string $string): string
     {
-        return md5((string)$string);
+        return md5($string);
     }
 
     /**
@@ -683,9 +657,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The string to hash
      * @return string The SHA1 hash of ``string``
      */
-    public function sha1($string)
+    public function sha1(string $string): string
     {
-        return sha1((string)$string);
+        return sha1($string);
     }
 
     /**
@@ -694,9 +668,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The input string
      * @return integer Length of the string
      */
-    public function length($string)
+    public function length(string $string): int
     {
-        return UnicodeFunctions::strlen((string)$string);
+        return UnicodeFunctions::strlen($string);
     }
 
     /**
@@ -707,10 +681,8 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $unicodeString The input string
      * @return integer Number of words
      */
-    public function wordCount($unicodeString)
+    public function wordCount(string $unicodeString): int
     {
-        $unicodeString = (string)$unicodeString;
-
         $unicodeString = preg_replace('/[[:punct:][:digit:]]/', '', $unicodeString);
 
         return count(preg_split('/[[:space:]]+/', $unicodeString, 0, PREG_SPLIT_NO_EMPTY));
@@ -723,7 +695,7 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param string $string The data to encode.
      * @return string The encoded data
      */
-    public function base64encode($string)
+    public function base64encode(string $string): string
     {
         return base64_encode((string)$string);
     }
@@ -736,9 +708,9 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param bool $strict If TRUE this function will return FALSE if the input contains character from outside the base64 alphabet.
      * @return string|bool The decoded data or FALSE on failure. The returned data may be binary.
      */
-    public function base64decode($string, bool $strict = false)
+    public function base64decode(string $string, bool $strict = false): bool|string
     {
-        return base64_decode((string)$string, $strict);
+        return base64_decode($string, $strict);
     }
 
     /**
@@ -749,7 +721,7 @@ class StringHelper implements ProtectedContextAwareInterface
      * @param array $args An array of values to be inserted according to the formatting string $format
      * @return string A string produced according to the formatting string $format
      */
-    public function format($format, array $args)
+    public function format($format, array $args): string
     {
         return vsprintf($format, $args);
     }
